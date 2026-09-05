@@ -6,7 +6,7 @@ const Module = require('module');
 
 const BUILTINS = new Set(Module.builtinModules);
 const SCAN_EXTENSIONS = new Set(['.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs']);
-const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'build', 'coverage']);
+const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'build', 'coverage', 'fixtures']);
 
 // Matches require('x'), import ... from 'x', dynamic import('x'). This is a
 // simple regex scan, not a full AST parse, monorepo/workspace-aware
