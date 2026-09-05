@@ -8,9 +8,9 @@ const BUILTINS = new Set(Module.builtinModules);
 const SCAN_EXTENSIONS = new Set(['.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs']);
 const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'build', 'coverage', 'fixtures']);
 
-// Matches require('x'), import ... from 'x', dynamic import('x'). This is a
-// simple regex scan, not a full AST parse, monorepo/workspace-aware
-// resolution is not built yet, see README Status.
+// Matches require(), import from, and import(). This is a simple regex
+// scan, not a full AST parse. monorepo/workspace resolution is not
+// built yet, see README.
 const IMPORT_RE = /(?:require\(\s*['"]([^'"]+)['"]\s*\)|import\s+(?:[^'"]*?\s+from\s+)?['"]([^'"]+)['"]|import\(\s*['"]([^'"]+)['"]\s*\))/g;
 
 function walk(dir, files = []) {
