@@ -1,0 +1,8 @@
+{
+  "name": "locked",
+  "version": "1.0.0",
+  "license": "MIT",
+  "dependencies": {
+    "fake-mit": "1.0.0"
+  }
+}
