@@ -9,7 +9,7 @@ const path = require('path');
 const FINGERPRINTS = {
   MIT: [/permission is hereby granted, free of charge/i, /mit license/i],
   'Apache-2.0': [/apache license/i, /version 2\.0/i],
-  'ISC': [/isc license/i, /permission to use, copy, modify/i],
+  ISC: [/isc license/i, /permission to use, copy, modify/i],
   'BSD-2-Clause': [/redistribution and use in source and binary forms/i],
   'BSD-3-Clause': [/redistribution and use in source and binary forms/i],
   'GPL-3.0': [/gnu general public license/i, /version 3/i],
@@ -28,64 +28,91 @@ function findLicenseFile(dir) {
   return null;
 }
 
-function checkLicense(pkgDir) {
+function normalizeDeclared(declared) {
+  if (!declared) return null;
+  if (typeof declared === 'object' && declared.type) return declared.type;
+  return String(declared).split(' ')[0];
+}
+
+function checkOnePackage(pkgDir, label) {
   const pkgJsonPath = path.join(pkgDir, 'package.json');
   const findings = [];
 
-if (!fs.existsSync(pkgJsonPath)) {
-  findings.push({ severity: 'error', message: 'no package.json found in ' + pkgDir });
-  return findings;
-}
+  if (!fs.existsSync(pkgJsonPath)) {
+    findings.push({
+      severity: 'error',
+      package: label,
+      message: 'no package.json found in ' + pkgDir
+    });
+    return findings;
+  }
 
-const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf8'));
-  const declared = pkg.license || (pkg.licenses && pkg.licenses[0] && pkg.licenses[0].type) || null;
+  const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf8'));
+  const declared = normalizeDeclared(
+    pkg.license || (pkg.licenses && pkg.licenses[0] && pkg.licenses[0].type) || null
+  );
   const licenseFile = findLicenseFile(pkgDir);
+  const where = label || pkg.name || path.basename(pkgDir);
 
-if (!declared && !licenseFile) {
-  findings.push({ severity: 'warning', message: 'no license field in package.json and no LICENSE file found' });
-  return findings;
-}
+  if (!declared && !licenseFile) {
+    findings.push({
+      severity: 'warning',
+      package: where,
+      message: 'no license field in package.json and no LICENSE file found'
+    });
+    return findings;
+  }
 
-if (declared && !licenseFile) {
-  findings.push({
-    severity: 'error',
-    message: `package.json declares "${declared}" but no LICENSE file is shipped alongside it`
-  });
-  return findings;
-}
+  if (declared && !licenseFile) {
+    findings.push({
+      severity: 'error',
+      package: where,
+      message: `package.json declares "${declared}" but no LICENSE file is shipped alongside it`
+    });
+    return findings;
+  }
 
-if (!declared && licenseFile) {
-  findings.push({
-    severity: 'warning',
-    message: `a LICENSE file exists (${path.basename(licenseFile)}) but package.json has no "license" field`
-  });
-  return findings;
-}
+  if (!declared && licenseFile) {
+    findings.push({
+      severity: 'warning',
+      package: where,
+      message: `a LICENSE file exists (${path.basename(licenseFile)}) but package.json has no "license" field`
+    });
+    return findings;
+  }
 
-const text = fs.readFileSync(licenseFile, 'utf8');
+  const text = fs.readFileSync(licenseFile, 'utf8');
   const patterns = FINGERPRINTS[declared];
 
-if (!patterns) {
-  findings.push({
-    severity: 'info',
-    message: `declared license "${declared}" is not in driftlint's fingerprint list yet, skipping text match (checked file: ${path.basename(licenseFile)})`
-  });
-  return findings;
-}
+  if (!patterns) {
+    findings.push({
+      severity: 'info',
+      package: where,
+      message: `declared license "${declared}" is not in driftlint's fingerprint list yet, skipping text match (checked file: ${path.basename(licenseFile)})`
+    });
+    return findings;
+  }
 
-const matches = patterns.some((re) => re.test(text));
+  const matches = patterns.some((re) => re.test(text));
   if (!matches) {
     findings.push({
       severity: 'error',
+      package: where,
       message: `package.json declares "${declared}" but ${path.basename(licenseFile)} does not look like that license's text`
     });
   } else {
-    findings.push({ severity: 'ok', message: `declared "${declared}" matches ${path.basename(licenseFile)}` });
+    findings.push({
+      severity: 'ok',
+      package: where,
+      message: `declared "${declared}" matches ${path.basename(licenseFile)}`
+    });
   }
 
-return findings;
+  return findings;
 }
 
-module.exports = { checkLicense, findLicenseFile };
+function checkLicense(pkgDir) {
+  return checkOnePackage(pkgDir, '.');
+}
 
-module.exports = { checkLicense, findLicenseFile };
+module.exports = { checkLicense, checkOnePackage, findLicenseFile, FINGERPRINTS };
