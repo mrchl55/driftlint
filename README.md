@@ -1,21 +1,35 @@
 # driftlint
 
-License & dependency provenance verifier for JavaScript/Node.
+CLI that checks whether JS/Node dependency metadata is actually true.
 
-## What it does
+It does two things today:
 
-Most supply-chain tools (Syft, Trivy, cdxgen, npm sbom) generate SBOMs from your lockfile and take the declared metadata at face value. driftlint checks whether that metadata is actually true: whether the license field in package.json matches the LICENSE file actually shipped inside the package, whether dependencies imported in your code are missing from package.json ("phantom dependencies"), and whether declared dependencies are never actually used anywhere in the codebase.
+1. Compare a package's `license` field to the LICENSE file sitting next to it. Runs on the project itself and on packages from `package-lock.json` if they are installed.
+2. Find phantom dependencies (imported but not in `package.json`) and unused ones (declared but never imported).
 
-Supports npm, pnpm and yarn lockfiles, including monorepo and workspace setups. Output is a machine-readable report (JSON plus a human-readable summary) designed to feed into existing SBOM and compliance pipelines rather than replace them.
+It does not generate an SBOM. The report is meant to sit next to Syft / Trivy / cdxgen, not replace them.
 
-## Status
+## usage
 
-Early stage. This project is being developed as part of an application for an NLnet Foundation grant (CodeSupply fund). Not yet functional -- watch this repo for progress.
+```
+npx driftlint
+npx driftlint ./some/project
+npx driftlint --json
+```
 
-## Why
+Exit code is 1 when there is at least one error.
 
-License and provenance drift is invisible to tools that only read the lockfile and trust it. That gap matters for EU Cyber Resilience Act supply-chain documentation obligations. driftlint does not replace SBOM generation, it verifies the inputs those tools rely on.
+## status
 
-## License
+Early. Works on flat npm projects.
+
+Not done yet:
+
+- pnpm / yarn lockfile parsers
+- monorepo / workspace hoisting
+- real SPDX matching (fingerprints only, so unknown ids are skipped)
+- AST-based import scan (regex for now)
+
+## license
 
 MIT
