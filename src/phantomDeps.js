@@ -37,6 +37,7 @@ function findImportedPackages(rootDir) {
   const imported = new Set();
   for (const file of walk(rootDir)) {
     const content = fs.readFileSync(file, 'utf8');
+    IMPORT_RE.lastIndex = 0;
     let match;
     while ((match = IMPORT_RE.exec(content)) !== null) {
       const spec = match[1] || match[2] || match[3];
