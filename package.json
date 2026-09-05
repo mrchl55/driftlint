@@ -1,0 +1,17 @@
+{
+  "name": "driftlint",
+  "version": "0.1.0",
+  "description": "License & dependency metadata verifier for JavaScript/Node projects.",
+  "license": "MIT",
+  "bin": {
+    "driftlint": "./bin/driftlint.js"
+  },
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "node test/run.js"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}
