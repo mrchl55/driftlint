@@ -7,7 +7,11 @@ const { run } = require('../src/index');
 const target = path.resolve(process.argv[2] || '.');
 const result = run(target);
 
-const allFindings = [...result.license, ...result.dependencies];
+const allFindings = [
+  ...result.license,
+  ...result.dependencyLicenses,
+  ...result.dependencies
+];
 const bySeverity = { error: 0, warning: 0, info: 0, ok: 0 };
 
 for (const f of allFindings) {
